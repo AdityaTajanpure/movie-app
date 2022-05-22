@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 
 var allowedDomains = [
-  "https://guvi-movie-app.netlify.app/",
+  "https://guvi-movie-app.netlify.app",
   "http://localhost:3000",
 ];
 app.use(
