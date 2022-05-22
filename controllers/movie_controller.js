@@ -103,10 +103,26 @@ const deleteMovieById = asyncHandler(async (req, res) => {
   });
 });
 
+const searchMovie = asyncHandler(async (req, res) => {
+  let name = req.params.name;
+  let response = await client
+    .db("aditya")
+    .collection("movies")
+    .find({})
+    .toArray();
+  let result = response.filter((res) => res.name.toLowerCase().includes(name));
+  res.json({
+    status: true,
+    msg: "Fetched Records Successfully",
+    data: result,
+  });
+});
+
 module.exports = {
   getMovies,
   getMovieById,
   addMovie,
   updateMovie,
   deleteMovieById,
+  searchMovie,
 };
