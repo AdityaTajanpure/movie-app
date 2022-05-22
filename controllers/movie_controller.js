@@ -13,7 +13,7 @@ const getMovies = asyncHandler(async (req, res) => {
   res.json({
     status: true,
     msg: "Fetched movies",
-    data: movies,
+    data: movies.reverse(),
   });
 });
 

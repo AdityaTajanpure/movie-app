@@ -7,23 +7,13 @@ const port = process.env.PORT;
 const app = express();
 app.use(express.json());
 
-var allowedDomains = [
-  "https://guvi-movie-app.netlify.app",
-  "http://localhost:3000",
-];
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      if (allowedDomains.indexOf(origin) === -1) {
-        var msg = `This site ${origin} does not have an access. Only specific domains are allowed to access it.`;
-        return callback(new Error(msg), false);
-      }
-      return callback(null, true);
-    },
-  })
-);
+app.use(cors());
 
+app.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH");
+  next();
+});
 MongoConnection.connect();
 
 app.listen(port, () => {
