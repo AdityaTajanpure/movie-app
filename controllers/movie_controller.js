@@ -1,6 +1,9 @@
 const asyncHandler = require("express-async-handler");
 const MongoConnection = require("../config/db");
 const { ObjectId } = require("mongodb");
+const nodemailer = require("nodemailer");
+const shortid = require("shortid");
+const Razorpay = require("razorpay");
 
 var client = MongoConnection.connection;
 
@@ -118,6 +121,77 @@ const searchMovie = asyncHandler(async (req, res) => {
   });
 });
 
+const referMovie = asyncHandler(async (req, res) => {
+  const { referrer_name, referred_name, referred_email, movie } = req.body;
+
+  if ((!referrer_name || !referred_name, !referred_email)) {
+    res.json({
+      status: false,
+      msg: "All Fields are required",
+      data: null,
+    });
+    return;
+  }
+
+  const authObject = {
+    service: "Gmail",
+    auth: {
+      user: process.env.MAIL_USER,
+      pass: process.env.MAIL_PASS,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  };
+
+  let transporter = nodemailer.createTransport(authObject);
+  let mailOptions = {
+    from: process.env.MAIL_UESR,
+    to: referred_email,
+    subject: "We've got a movie recommendation for you",
+    html: `
+    <h3> Seen '${movie.name}' on our Movie app yet? </h3>
+    <p>Hey, <b>${referred_name}</b> what are you watching?<br>
+    <b>${referrer_name}</b> just referred you this movie, they think you should watch it.<br>
+
+    <h4>So what are you waiting for get this movie now:</h4>
+    <a href="${req.get("origin")}/${movie._id}"> ${req.get("origin")}/${
+      movie._id
+    } </a>
+    </p>
+    `,
+  };
+  transporter.sendMail(mailOptions, function (err, data) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("Email sent successfully");
+    }
+  });
+  res.json({
+    status: true,
+    msg: "Friend referred successfully",
+  });
+});
+
+const createOrder = async (req, res) => {
+  const razorpayInstance = new Razorpay({
+    key_id: "rzp_test_88Rv0leB7MRlDj",
+    key_secret: "Fs5007AsPB25DGk60TYtHgaY",
+  });
+  const { amount, currency, receipt, notes } = req.body;
+
+  console.log(amount, currency, receipt, notes);
+
+  razorpayInstance.orders.create(
+    { amount, currency, receipt, notes },
+    (err, order) => {
+      if (!err) res.json(order);
+      else res.send(err);
+    }
+  );
+};
+
 module.exports = {
   getMovies,
   getMovieById,
@@ -125,4 +199,6 @@ module.exports = {
   updateMovie,
   deleteMovieById,
   searchMovie,
+  referMovie,
+  createOrder,
 };
